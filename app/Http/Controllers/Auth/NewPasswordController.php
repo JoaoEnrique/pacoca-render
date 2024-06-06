@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class NewPasswordController extends Controller
 {
@@ -50,12 +52,24 @@ class NewPasswordController extends Controller
             }
         );
 
+        $user = User::where('email', $request->email)->first();
+
         // If the password was successfully reset, we will redirect the user back to
         // the application's home authenticated view. If there is an error we can
         // redirect them back to where they came from with their error message.
-        return $status == Password::PASSWORD_RESET
-                    ? redirect()->route('login')->with('status', __($status))
-                    : back()->withInput($request->only('email'))
+
+        $status = Password::PASSWORD_RESET;
+        if($status){
+            Auth::login($user);
+            return redirect()->route('feed')->with('success', __($status));
+        }
+        return back()->withInput($request->only('email'))
                             ->withErrors(['email' => __($status)]);
+        // return $status == Password::PASSWORD_RESET
+        //             ? Auth::login($user)
+        //             : back()->withInput($request->only('email'))
+        //                     ->withErrors(['email' => __($status)]);
+
+
     }
 }

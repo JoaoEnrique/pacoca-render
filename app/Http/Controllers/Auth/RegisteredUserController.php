@@ -23,7 +23,6 @@ class RegisteredUserController extends Controller
     }
 
     /**
-     * Handle an incoming registration request.
      *
      * @throws \Illuminate\Validation\ValidationException
      */
@@ -31,20 +30,28 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'user_name' => ['required', 'string', 'max:255', 'unique:users'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password_confirmation' => ['required', 'string', 'min:8'],
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        $dados = $request->only(['name', 'user_name', 'email', 'phone', 'password', 'site', 'biography', 'sexo', 'birth_date']);
+        $dados['password'] = Hash::make($dados['password']);
+        $dados_login = $request->only(['email', 'password']);
 
-        event(new Registered($user));
+
+        $user = User::create($dados);
+        // $this->setNotification($new_user->id, '../img/pacoca-fundo.png', 'Seja bem vindo ao Paçoca, sua nova rede social', '/pacoca', '/pacoca');
+
+        // event(new Registered($user));
+
+        $user->sendEmailVerificationNotification();
 
         Auth::login($user);
 
-        return redirect(route('feed', absolute: false));
+        return redirect()->intended(route('verification.notice'));
+
+        return redirect('/')->with('mensagem', 'Conta criada. Um link de verificação de email foi enviado para eu email');
     }
 }

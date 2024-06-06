@@ -20,6 +20,13 @@
         <div class="col col-form-login">
 
           <form class="form-login" method="POST" action="{{ route('login') }}">
+                        {{-- MENSAGEM DE CONTA CRIADA --}}
+            @if(session()->has('success'))
+                <div class="alert alert-success alert-dismissible alert-account-create fade show" role="alert">
+                    {{session('success')}}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
 
             {{-- MENSAGEM DE CONTA CRIADA --}}
             @if(session()->has('conta-create-success'))
